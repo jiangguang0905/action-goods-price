@@ -7,7 +7,7 @@ page_size = 20
 [mail]
 host = "smtp.qq.com"
 port = 587
-subject = "京东显卡价格日报 {date}"
+subject = "价格日报-JDAPI {date}"
 
 [path]
 db = "price.db"
