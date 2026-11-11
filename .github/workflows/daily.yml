@@ -1,0 +1,71 @@
+name: 京东显卡价格日报
+
+on:
+  schedule:
+    - cron: "7 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: price-daily
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v6
+
+      - name: 准备 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: 建立虚拟环境
+        run: |
+          python -m venv .venv
+          .venv\Scripts\python.exe -m pip install --disable-pip-version-check -r requirements.txt
+
+      - name: 校验中文字体
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'C:\Windows\Fonts\msyh.ttc')) {
+            New-Item -ItemType Directory -Force 'fonts' | Out-Null
+            try {
+              Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf' -OutFile 'fonts/NotoSansCJKsc-Regular.otf'
+            } catch {
+              Write-Warning "中文字体下载失败：$($_.Exception.Message)"
+            }
+          }
+          .\.venv\Scripts\python.exe -c "from figure import cjk_font; print('font=', cjk_font().get_file())"
+
+      - name: 运行日报
+        env:
+          JD_APPKEY: ${{ secrets.JD_APPKEY }}
+          JD_SECRET: ${{ secrets.JD_SECRET }}
+          SMTP: ${{ secrets.SMTP }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          GROUP_ID: ${{ secrets.GROUP_ID }}
+          OWNER_UNION_ID: ${{ secrets.OWNER_UNION_ID }}
+        run: cmd /c run.bat
+
+      - name: 回写价格库
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add price.db
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "chore: price.db [skip ci]"
+            git push
+          }

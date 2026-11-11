@@ -1,0 +1,39 @@
+[union]
+gateway = "https://router.jd.com/api"
+method = "jd.union.open.goods.jingfen.query"
+elite_id = 1001
+page_size = 20
+
+[mail]
+host = "smtp.qq.com"
+port = 587
+subject = "京东显卡价格日报 {date}"
+
+[path]
+db = "price.db"
+figures = "figures"
+font_candidates = [
+  "fonts/NotoSansCJKsc-Regular.otf",
+  "C:/Windows/Fonts/msyh.ttc",
+  "C:/Windows/Fonts/msyhbd.ttc",
+  "C:/Windows/Fonts/simhei.ttf",
+  "C:/Windows/Fonts/simsun.ttc",
+  "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+  "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+]
+font_keywords = 'msyh|simhei|simsun|noto.*cjk|wqy|sourcehan|pingfang'
+
+[report]
+days = 7
+
+[name]
+enabled = true
+pattern = '(?i)(?:RTX|GTX|RX|Arc)\s*\d{4}\s*(?:Ti|XTX|XT|GRE)?\s*\d+G(?:B)?'
+anchor = "last"
+template = "{brand} {tail}"
+fallback = "sku_name"
+
+[runtime]
+timeout = 20
+retries = 3
+backoff = 3
