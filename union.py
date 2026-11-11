@@ -24,9 +24,9 @@ def post(params: dict[str, str]) -> dict:
             return resp.json()
         except (requests.RequestException, ValueError) as exc:
             if attempt == RUNTIME["retries"]:
-                raise RuntimeError(f"取价失败，已重试{attempt + 1}次：{exc}") from exc
+                raise RuntimeError(f"取价失败，已重试{attempt + 1}次：{type(exc).__name__}") from exc
             delay = RUNTIME["backoff"] * (attempt + 1)
-            logging.warning("取价请求第%d次失败（%s），%d秒后重试", attempt + 1, exc, delay)
+            logging.warning("取价请求第%d次失败（%s），%d秒后重试", attempt + 1, type(exc).__name__, delay)
             time.sleep(delay)
     raise RuntimeError("取价重试耗尽")
 
@@ -46,10 +46,10 @@ def query() -> list[dict]:
     obj = post(params)
     key = next((k for k in obj if k.endswith("_response")), None)
     if key is None:
-        raise RuntimeError(f"联盟网关未返回响应体：{obj}")
+        raise RuntimeError("联盟网关未返回响应体")
     result = json.loads(obj[key]["result"])
     if result.get("code") != 200 or not isinstance(result.get("data"), list):
-        raise RuntimeError(f"联盟网关业务异常：{result}")
+        raise RuntimeError(f"联盟网关业务异常，code={result.get('code')}，message={result.get('message')}")
     fields = ("spuid", "skuName", "brandName", "priceInfo", "purchasePriceInfo", "materialUrl")
     data = result["data"]
     bad = [str(i) for i, d in enumerate(data) if any(k not in d for k in fields)]
