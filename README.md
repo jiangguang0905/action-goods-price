@@ -8,7 +8,7 @@
 
 ## 1.2 运行形态
 
-本地以`run.bat`一键运行，云端由`.github/workflows/daily.yml`在`windows-latest`上每日北京时间10:23执行，两端共用同一份代码与`config.toml`。外部定时服务每日11:30触发兜底检查，当日无成功运行则补跑，并由心跳监控覆盖静默失败。
+本地以`run.bat`一键运行，云端由`.github/workflows/daily.yml`在`windows-latest`上每日北京时间10:23执行，两端共用同一份代码与`config.toml`。仓库内另设检查工作流，每日北京时间11:37与13:47核对当日运行状态，缺失或失败时以`workflow_dispatch`补跑日报。
 
 # 2 配置
 

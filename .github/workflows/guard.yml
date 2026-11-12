@@ -1,8 +1,9 @@
 name: 日报兜底检查
 
 on:
-  repository_dispatch:
-    types: [price-guard]
+  schedule:
+    - cron: "37 3 * * *"
+    - cron: "47 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,5 +19,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           day=$(date -u +%F)
-          n=$(gh api "repos/${{ github.repository }}/actions/workflows/daily.yml/runs?per_page=20" --jq "[.workflow_runs[] | select(.conclusion == \"success\" and (.created_at | startswith(\"$day\")))] | length")
+          n=$(gh api "repos/${{ github.repository }}/actions/workflows/daily.yml/runs?per_page=20" --jq "[.workflow_runs[] | select((.created_at | startswith(\"$day\")) and (.status != \"completed\" or .conclusion == \"success\"))] | length")
           if [ "$n" -eq 0 ]; then gh workflow run daily.yml --repo "${{ github.repository }}"; fi
