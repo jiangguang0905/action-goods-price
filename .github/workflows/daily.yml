@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "23 2 * * *"
   workflow_dispatch:
+  repository_dispatch:
+    types: [daily-price]
 
 permissions:
   contents: write
@@ -16,10 +18,16 @@ jobs:
   daily:
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
     defaults:
       run:
         shell: cmd
     steps:
+      - name: 上报心跳开始
+        shell: pwsh
+        continue-on-error: true
+        run: curl.exe -fsS -m 10 --retry 3 "$env:HEARTBEAT_URL/start"
       - name: 检出仓库
         uses: actions/checkout@v6
 
@@ -67,5 +75,12 @@ jobs:
           git diff --cached --quiet
           if ($LASTEXITCODE -ne 0) {
             git commit -m "chore: price.db [skip ci]"
+            git pull --rebase origin main
             git push
           }
+
+      - name: 上报心跳结果
+        if: always()
+        shell: pwsh
+        continue-on-error: true
+        run: curl.exe -fsS -m 10 --retry 3 "${{ job.status == 'success' && env.HEARTBEAT_URL || format('{0}/fail', env.HEARTBEAT_URL) }}"

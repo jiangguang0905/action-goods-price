@@ -1,0 +1,22 @@
+name: 日报兜底检查
+
+on:
+  repository_dispatch:
+    types: [price-guard]
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 当日缺失则补跑
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          day=$(date -u +%F)
+          n=$(gh api "repos/${{ github.repository }}/actions/workflows/daily.yml/runs?per_page=20" --jq "[.workflow_runs[] | select(.conclusion == \"success\" and (.created_at | startswith(\"$day\")))] | length")
+          if [ "$n" -eq 0 ]; then gh workflow run daily.yml --repo "${{ github.repository }}"; fi
