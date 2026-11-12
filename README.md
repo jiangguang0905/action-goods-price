@@ -8,7 +8,7 @@
 
 ## 1.2 运行形态
 
-本地以`run.bat`一键运行，云端由`.github/workflows/daily.yml`在`windows-latest`上每日北京时间10:00执行，两端共用同一份代码与`config.toml`。
+本地以`run.bat`一键运行，云端由`.github/workflows/daily.yml`在`windows-latest`上每日北京时间10:23执行，两端共用同一份代码与`config.toml`。
 
 # 2 配置
 
