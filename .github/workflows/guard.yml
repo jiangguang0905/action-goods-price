@@ -2,8 +2,10 @@ name: 日报兜底检查
 
 on:
   schedule:
-    - cron: "37 3 * * *"
-    - cron: "47 5 * * *"
+    - cron: "37 18 * * *"
+      timezone: "Asia/Shanghai"
+    - cron: "47 20 * * *"
+      timezone: "Asia/Shanghai"
   workflow_dispatch:
 
 permissions:
